@@ -1,6 +1,7 @@
 // client/src/components/Navbar.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { isDemo } from "../api/client.js";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,7 +13,13 @@ export default function Navbar() {
   }
 
   return (
-    <header className="bg-white border-b border-gray-200">
+    <>
+      {isDemo && (
+        <div className="bg-amber-100 text-amber-900 text-xs text-center py-1 px-2">
+          Modo demo (GitHub Pages): los datos se guardan en tu navegador. Admin: admin@bookly.com / admin1234
+        </div>
+      )}
+      <header className="bg-white border-b border-gray-200">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="text-xl font-bold text-ink">
           BOOKLY
@@ -48,5 +55,6 @@ export default function Navbar() {
         </nav>
       </div>
     </header>
+    </>
   );
 }
