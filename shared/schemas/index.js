@@ -26,6 +26,10 @@ const appointmentCreateSchema = z.object({
   startsAt: z.string().datetime({ offset: true }),
 });
 
+const appointmentRescheduleSchema = z.object({
+  startsAt: z.string().datetime({ offset: true }),
+});
+
 const businessHourSchema = z.object({
   dayOfWeek: z.number().int().min(0).max(6),
   openTime: z.string().regex(/^\d{2}:\d{2}$/),
@@ -46,6 +50,7 @@ module.exports = {
   loginSchema,
   serviceSchema,
   appointmentCreateSchema,
+  appointmentRescheduleSchema,
   businessHourSchema,
   blockedSlotSchema,
 };

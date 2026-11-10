@@ -1,57 +1,62 @@
 // client/src/context/AuthContext.jsx
-import { createContext, useContext, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "../api/client.js";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { api } from "../api/index.js";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const qc = useQueryClient();
   const [user, setUser] = useState(null);
+  const [ready, setReady] = useState(false);
 
-  const { isLoading } = useQuery({
-    queryKey: ["me"],
-    queryFn: async () => {
-      try {
-        const data = await api.get("/auth/me");
+  useEffect(() => {
+    let alive = true;
+    api.auth
+      .me()
+      .then((data) => {
+        if (alive) setUser(data.user);
+      })
+      .catch(() => {
+        if (alive) setUser(null);
+      })
+      .finally(() => {
+        if (alive) setReady(true);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user,
+      ready,
+      login: async (credentials) => {
+        const data = await api.auth.login(credentials);
         setUser(data.user);
         return data.user;
-      } catch {
-        setUser(null);
-        return null;
-      }
-    },
-  });
-
-  async function login(email, password) {
-    const data = await api.post("/auth/login", { email, password });
-    setUser(data.user);
-    qc.invalidateQueries({ queryKey: ["me"] });
-    return data.user;
-  }
-
-  async function register(payload) {
-    const data = await api.post("/auth/register", payload);
-    setUser(data.user);
-    qc.invalidateQueries({ queryKey: ["me"] });
-    return data.user;
-  }
-
-  async function logout() {
-    await api.post("/auth/logout", {});
-    setUser(null);
-    qc.clear();
-  }
-
-  return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
+      },
+      register: async (payload) => {
+        const data = await api.auth.register(payload);
+        setUser(data.user);
+        return data.user;
+      },
+      logout: async () => {
+        try {
+          await api.auth.logout();
+        } finally {
+          setUser(null);
+        }
+      },
+      setUser,
+    }),
+    [user, ready],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
   return ctx;
 }

@@ -10,6 +10,11 @@ exports.list = asyncHandler(async (req, res) => {
   res.json({ services });
 });
 
+exports.listAll = asyncHandler(async (_req, res) => {
+  const services = await serviceService.list({ includeInactive: true });
+  res.json({ services });
+});
+
 exports.get = asyncHandler(async (req, res) => {
   const service = await serviceService.getById(req.params.id);
   res.json({ service });

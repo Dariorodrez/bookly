@@ -12,6 +12,7 @@ const prisma = require("./config/prisma");
 const authRoutes = require("./routes/auth");
 const serviceRoutes = require("./routes/services");
 const availabilityRoutes = require("./routes/availability");
+const businessHoursRoutes = require("./routes/businessHours");
 const appointmentRoutes = require("./routes/appointments");
 const adminRoutes = require("./routes/admin");
 
@@ -31,14 +32,18 @@ app.use(express.json({ limit: "100kb" }));
 app.use(cookieParser());
 app.use(sessionMiddleware);
 
-// Rate limit global suave + estricto en auth
+// Rate limit en auth: limita intentos fallidos, no las consultas de sesión.
 app.use(
   "/api/auth",
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 20,
+    max: 30,
+    skip: (req) => req.method === "GET",
+    skipSuccessfulRequests: true,
     standardHeaders: true,
     legacyHeaders: false,
+    handler: (_req, res) =>
+      res.status(429).json({ error: "Demasiados intentos. Espera unos minutos y vuelve a probar." }),
   }),
 );
 
@@ -47,6 +52,7 @@ app.get("/api/health", (_req, res) => res.json({ ok: true, env: env.NODE_ENV }))
 app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/availability", availabilityRoutes);
+app.use("/api/business-hours", businessHoursRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
 

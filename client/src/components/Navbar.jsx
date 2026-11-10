@@ -1,60 +1,170 @@
 // client/src/components/Navbar.jsx
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { isDemo } from "../api/client.js";
+import { isDemo } from "../api/index.js";
+import { Icon } from "./Icons.jsx";
+
+function initials(name = "") {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, ready, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    setMobileOpen(false);
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [menuOpen]);
 
   async function handleLogout() {
     await logout();
+    setMenuOpen(false);
     navigate("/");
   }
 
+  const isActive = (path) => location.pathname === path;
+
   return (
     <>
-      {isDemo && (
-        <div className="bg-amber-100 text-amber-900 text-xs text-center py-1 px-2">
-          Modo demo (GitHub Pages): los datos se guardan en tu navegador. Admin: admin@bookly.com / admin1234
-        </div>
-      )}
-      <header className="bg-white border-b border-gray-200">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold text-ink">
-          BOOKLY
-        </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <Link to="/" className="hover:text-sandText">
-            Servicios
-          </Link>
-          {user ? (
-            <>
-              <Link to="/mis-citas" className="hover:text-sandText">
+      <a className="sr-only" href="#contenido">
+        Saltar al contenido
+      </a>
+      <header className="nav">
+        <div className="container nav__inner">
+          <div className="flex gap-3" style={{ alignItems: "center" }}>
+            <Link to="/" className="brand" aria-label="BOOKLY, inicio">
+              bookly<span className="brand__dot">.</span>
+            </Link>
+            {isDemo && <span className="demo-chip">Demo</span>}
+          </div>
+
+          <nav className="nav__links" aria-label="Principal">
+            <Link className={`nav__link ${isActive("/") ? "is-active" : ""}`} to="/">
+              Inicio
+            </Link>
+            <Link
+              className={`nav__link ${location.pathname.startsWith("/reservar") ? "is-active" : ""}`}
+              to="/reservar"
+            >
+              Reservar
+            </Link>
+            {user && (
+              <Link
+                className={`nav__link ${isActive("/mi-cuenta") ? "is-active" : ""}`}
+                to="/mi-cuenta"
+              >
                 Mis citas
               </Link>
-              {user.role === "ADMIN" && (
-                <Link to="/admin" className="hover:text-sandText">
-                  Admin
-                </Link>
-              )}
-              <button onClick={handleLogout} className="text-gray-600 hover:text-ink">
-                Salir
+            )}
+            {user?.role === "ADMIN" && (
+              <Link
+                className={`nav__link ${location.pathname.startsWith("/admin") ? "is-active" : ""}`}
+                to="/admin"
+              >
+                Panel
+              </Link>
+            )}
+          </nav>
+
+          <div className="nav__actions">
+            <Link to="/reservar" className="btn btn--primary btn--sm">
+              Pedir cita
+              <Icon name="arrowRight" size={15} />
+            </Link>
+
+            {!ready ? (
+              <span className="skeleton" style={{ width: 92, height: 34, borderRadius: 999 }} />
+            ) : user ? (
+              <div className="nav__user" ref={menuRef}>
+                <button
+                  className="nav__user-btn"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
+                >
+                  <span className="avatar">{initials(user.name)}</span>
+                  <span className="nav__user-name">{user.name.split(" ")[0]}</span>
+                  <Icon name="chevronDown" size={14} />
+                </button>
+                {menuOpen && (
+                  <div className="user-menu" role="menu">
+                    <div className="user-menu__head">
+                      <div className="user-menu__name">{user.name}</div>
+                      <div className="user-menu__email">{user.email}</div>
+                    </div>
+                    <Link className="user-menu__item" to="/mi-cuenta" role="menuitem">
+                      <Icon name="calendar" size={16} /> Mis citas
+                    </Link>
+                    <Link className="user-menu__item" to="/reservar" role="menuitem">
+                      <Icon name="plus" size={16} /> Nueva reserva
+                    </Link>
+                    {user.role === "ADMIN" && (
+                      <Link className="user-menu__item" to="/admin" role="menuitem">
+                        <Icon name="grid" size={16} /> Panel de administración
+                      </Link>
+                    )}
+                    <button className="user-menu__item" onClick={handleLogout} role="menuitem">
+                      <Icon name="logout" size={16} /> Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/entrar" className="btn btn--ghost btn--sm nav-login">
+                Entrar
+              </Link>
+            )}
+
+            <button
+              className="btn btn--ghost btn--icon mobile-toggle"
+              aria-label="Abrir menú"
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen((v) => !v)}
+            >
+              <Icon name={mobileOpen ? "close" : "menu"} size={20} />
+            </button>
+          </div>
+        </div>
+
+        <div className={`mobile-menu ${mobileOpen ? "is-open" : ""}`}>
+          <Link to="/">Inicio</Link>
+          <Link to="/reservar">Reservar cita</Link>
+          {user ? (
+            <>
+              <Link to="/mi-cuenta">Mis citas</Link>
+              {user.role === "ADMIN" && <Link to="/admin">Panel de administración</Link>}
+              <button onClick={handleLogout}>
+                <Icon name="logout" size={17} /> Cerrar sesión
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="hover:text-sandText">
-                Entrar
-              </Link>
-              <Link to="/register" className="btn btn-primary">
-                Registrarse
-              </Link>
+              <Link to="/entrar">Entrar</Link>
+              <Link to="/registro">Crear cuenta</Link>
             </>
           )}
-        </nav>
-      </div>
-    </header>
+        </div>
+      </header>
     </>
   );
 }

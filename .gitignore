@@ -6,3 +6,5 @@ dist/
 sessions.db
 .DS_Store
 Thumbs.db
+test-results/
+playwright-report/

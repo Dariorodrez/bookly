@@ -2,7 +2,7 @@
 const prisma = require("../config/prisma");
 const { badRequest, notFound, conflict, forbidden } = require("../utils/errors");
 const availabilityService = require("./availabilityService");
-const { addMinutes } = require("../utils/dates");
+const { addMinutes, calendarDateInZone, startOfZonedMonthUtc } = require("../utils/dates");
 
 async function create({ userId, serviceId, startsAt }) {
   const service = await prisma.service.findUnique({ where: { id: serviceId } });
@@ -14,7 +14,7 @@ async function create({ userId, serviceId, startsAt }) {
   // Verificar que el slot sigue libre (transacción serializable)
   const slots = await availabilityService.getSlots({
     serviceId,
-    date: start.toISOString().slice(0, 10),
+    date: calendarDateInZone(start),
   });
   const stillFree = slots.some((s) => new Date(s.startsAt).getTime() === start.getTime());
   if (!stillFree) throw conflict("El horario ya no está disponible");
@@ -54,6 +54,41 @@ async function cancel({ appointmentId, userId, isAdmin }) {
   });
 }
 
+async function reschedule({ appointmentId, userId, isAdmin, startsAt }) {
+  const appt = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { service: true },
+  });
+  if (!appt) throw notFound("Cita no encontrada");
+  if (!isAdmin && appt.userId !== userId) throw forbidden();
+  if (["CANCELLED", "COMPLETED", "NO_SHOW"].includes(appt.status)) {
+    throw badRequest("Esta cita ya no se puede reprogramar");
+  }
+
+  const start = new Date(startsAt);
+  if (Number.isNaN(start.getTime())) throw badRequest("Fecha inválida");
+  const end = addMinutes(start, appt.service.durationMin);
+
+  const slots = await availabilityService.getSlots({
+    serviceId: appt.serviceId,
+    date: calendarDateInZone(start),
+    excludeAppointmentId: appointmentId,
+  });
+  const stillFree = slots.some((s) => new Date(s.startsAt).getTime() === start.getTime());
+  if (!stillFree) throw conflict("El horario ya no está disponible");
+
+  try {
+    return await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { startsAt: start, endsAt: end },
+      include: { service: true },
+    });
+  } catch (e) {
+    if (e.code === "P2002") throw conflict("El horario ya no está disponible");
+    throw e;
+  }
+}
+
 async function listAll({ status, from, to }) {
   const where = {};
   if (status) where.status = status;
@@ -84,7 +119,7 @@ async function updateStatus({ id, status }) {
 
 async function stats() {
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfMonth = startOfZonedMonthUtc(now);
   const [totalUsers, totalServices, totalAppointments, monthAppointments, byStatus] =
     await Promise.all([
       prisma.user.count({ where: { role: "USER" } }),
@@ -102,4 +137,4 @@ async function stats() {
   };
 }
 
-module.exports = { create, listMine, cancel, listAll, updateStatus, stats };
+module.exports = { create, listMine, cancel, reschedule, listAll, updateStatus, stats };

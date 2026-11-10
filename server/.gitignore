@@ -4,5 +4,3 @@ node_modules/
 *.db-journal
 sessions.db
 dist/
-prisma/migrations/*/
-!prisma/migrations/migration_lock.toml

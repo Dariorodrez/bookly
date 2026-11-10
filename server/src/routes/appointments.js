@@ -8,4 +8,5 @@ router.use(requireAuth);
 router.get("/mine", appointmentsController.mine);
 router.post("/", ...appointmentsController.create);
 router.patch("/:id/cancel", appointmentsController.cancel);
+router.patch("/:id/reschedule", ...appointmentsController.reschedule);
 module.exports = router;

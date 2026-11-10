@@ -6,6 +6,7 @@ const servicesController = require("../controllers/servicesController");
 const router = express.Router();
 
 router.get("/", servicesController.list);
+router.get("/all", requireAuth, requireRole("ADMIN"), servicesController.listAll);
 router.get("/:id", servicesController.get);
 router.post("/", requireAuth, requireRole("ADMIN"), ...servicesController.create);
 router.patch("/:id", requireAuth, requireRole("ADMIN"), ...servicesController.update);

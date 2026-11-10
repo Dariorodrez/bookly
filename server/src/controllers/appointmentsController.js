@@ -2,7 +2,7 @@
 const { asyncHandler } = require("../utils/errors");
 const bookingService = require("../services/bookingService");
 const validate = require("../middleware/validate");
-const { appointmentCreateSchema } = require("@bookly/shared/schemas");
+const { appointmentCreateSchema, appointmentRescheduleSchema } = require("@bookly/shared/schemas");
 const { requireAuth } = require("../middleware/auth");
 
 exports.mine = asyncHandler(async (req, res) => {
@@ -31,3 +31,17 @@ exports.cancel = asyncHandler(async (req, res) => {
   });
   res.json({ appointment });
 });
+
+exports.reschedule = [
+  validate(appointmentRescheduleSchema),
+  asyncHandler(async (req, res) => {
+    const isAdmin = req.user.role === "ADMIN";
+    const appointment = await bookingService.reschedule({
+      appointmentId: req.params.id,
+      userId: req.user.id,
+      isAdmin,
+      startsAt: req.body.startsAt,
+    });
+    res.json({ appointment });
+  }),
+];

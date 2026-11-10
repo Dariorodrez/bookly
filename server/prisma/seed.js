@@ -18,6 +18,26 @@ async function main() {
     console.log("Admin ya existe:", adminEmail);
   }
 
+  // Cuenta de cliente de demostración
+  const clientEmail = "cliente@bookly.com";
+  const clientPassword = "cliente1234";
+  const existingClient = await prisma.user.findUnique({ where: { email: clientEmail } });
+  if (!existingClient) {
+    const hash = await bcrypt.hash(clientPassword, 12);
+    await prisma.user.create({
+      data: {
+        email: clientEmail,
+        passwordHash: hash,
+        name: "Cliente Demo",
+        phone: "+34 600 000 000",
+        role: "USER",
+      },
+    });
+    console.log("Cliente demo creado:", clientEmail, "/", clientPassword);
+  } else {
+    console.log("Cliente demo ya existe:", clientEmail);
+  }
+
   // Horarios por defecto: lunes(1)-sábado(6) 09:00-18:00, slot 30 min
   for (let day = 1; day <= 6; day++) {
     await prisma.businessHour.upsert({

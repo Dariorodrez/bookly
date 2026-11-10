@@ -1,61 +1,151 @@
 // client/src/pages/Register.jsx
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
+import AuthAside from "../components/AuthAside.jsx";
+import { Icon } from "../components/Icons.jsx";
 
 export default function Register() {
-  const { register } = useAuth();
+  const { user, register } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "", name: "", phone: "" });
+  const location = useLocation();
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  function update(key, value) {
-    setForm((f) => ({ ...f, [key]: value }));
+  const from = location.state?.from;
+
+  if (user) return <Navigate to={from || "/mi-cuenta"} replace />;
+
+  function update(field) {
+    return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    if (form.password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
+    setBusy(true);
     try {
-      await register(form);
-      navigate("/");
+      const created = await register(form);
+      toast(`Cuenta creada. Bienvenido, ${created.name.split(" ")[0]}`);
+      navigate(from || "/mi-cuenta", { replace: true });
     } catch (err) {
-      setError(err.message || "Error al registrarse");
+      setError(err.message || "No se pudo crear la cuenta");
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   }
 
   return (
-    <div className="max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Crear cuenta</h1>
-      <form onSubmit={handleSubmit} className="card space-y-4">
-        <div>
-          <label className="label" htmlFor="name">Nombre</label>
-          <input id="name" className="input" value={form.name} onChange={(e) => update("name", e.target.value)} required minLength={2} />
+    <div className="container">
+      <div className="auth-page fade-up">
+        <div className="auth-card">
+          <span className="eyebrow">Nueva cuenta</span>
+          <h1 className="auth-card__title">Reserva en tu nombre</h1>
+          <p className="auth-card__sub">
+            Solo necesitamos lo mínimo para identificar tu cita. Tardas menos de un minuto.
+          </p>
+
+          <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            {error && (
+              <div className="form-error">
+                <Icon name="alert" size={15} /> {error}
+              </div>
+            )}
+
+            <div className="field">
+              <label className="field__label" htmlFor="name">
+                Nombre
+              </label>
+              <input
+                id="name"
+                className="input"
+                autoComplete="name"
+                placeholder="Nombre y apellidos"
+                value={form.name}
+                onChange={update("name")}
+                required
+              />
+            </div>
+
+            <div className="field">
+              <label className="field__label" htmlFor="email">
+                Email
+              </label>
+              <input
+                id="email"
+                className="input"
+                type="email"
+                autoComplete="email"
+                placeholder="tu@email.com"
+                value={form.email}
+                onChange={update("email")}
+                required
+              />
+            </div>
+
+            <div className="field">
+              <label className="field__label" htmlFor="phone">
+                Teléfono <span className="muted">(opcional)</span>
+              </label>
+              <input
+                id="phone"
+                className="input"
+                type="tel"
+                autoComplete="tel"
+                placeholder="+34 600 000 000"
+                value={form.phone}
+                onChange={update("phone")}
+              />
+            </div>
+
+            <div className="field">
+              <label className="field__label" htmlFor="password">
+                Contraseña
+              </label>
+              <div className="input-group">
+                <input
+                  id="password"
+                  className="input"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  placeholder="Mínimo 8 caracteres"
+                  value={form.password}
+                  onChange={update("password")}
+                  minLength={8}
+                  required
+                />
+                <button
+                  type="button"
+                  className="input-group__icon"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  <Icon name={showPassword ? "eyeOff" : "eye"} size={17} />
+                </button>
+              </div>
+              <span className="field__hint">Mínimo 8 caracteres.</span>
+            </div>
+
+            <button className="btn btn--primary btn--block btn--lg" type="submit" disabled={busy}>
+              {busy ? "Creando cuenta…" : "Crear cuenta"}
+              {!busy && <Icon name="arrowRight" size={16} />}
+            </button>
+          </form>
+
+          <p className="auth-foot">
+            ¿Ya tienes cuenta? <Link to="/entrar">Entrar</Link>
+          </p>
         </div>
-        <div>
-          <label className="label" htmlFor="email">Email</label>
-          <input id="email" className="input" type="email" value={form.email} onChange={(e) => update("email", e.target.value)} required />
-        </div>
-        <div>
-          <label className="label" htmlFor="phone">Teléfono (opcional)</label>
-          <input id="phone" className="input" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
-        </div>
-        <div>
-          <label className="label" htmlFor="password">Contraseña</label>
-          <input id="password" className="input" type="password" value={form.password} onChange={(e) => update("password", e.target.value)} required minLength={8} />
-        </div>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        <button className="btn btn-primary w-full" disabled={loading}>
-          {loading ? "Creando..." : "Crear cuenta"}
-        </button>
-        <p className="text-sm text-gray-600">
-          ¿Ya tienes cuenta? <Link to="/login" className="text-sandText">Entrar</Link>
-        </p>
-      </form>
+        <AuthAside />
+      </div>
     </div>
   );
 }
