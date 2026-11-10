@@ -78,3 +78,16 @@ test("responsive móvil sin desbordes", async ({ page }) => {
     await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
   ).toBeLessThanOrEqual(1);
 });
+
+test("anclas de la portada no devuelven 404", async ({ page }) => {
+  await page.goto("/servicios");
+  await expect(page.getByRole("heading", { name: /Elige lo que necesitas/i })).toBeVisible();
+
+  await page.goto("/");
+  await page.getByRole("button", { name: /Ver servicios/i }).click();
+  await page.waitForTimeout(900);
+  const top = await page.evaluate(
+    () => document.getElementById("servicios").getBoundingClientRect().top,
+  );
+  expect(top).toBeGreaterThanOrEqual(60);
+});

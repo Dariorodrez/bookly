@@ -1414,6 +1414,15 @@ h3 {
   scroll-margin-top: 84px;
 }
 
+#servicios {
+  scroll-margin-top: 84px;
+}
+
+.app-main:focus,
+.app-main:focus-visible {
+  outline: none;
+}
+
 .section--demo .section__text {
   color: var(--ink-soft);
 }

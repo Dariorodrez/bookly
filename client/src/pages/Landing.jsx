@@ -114,9 +114,17 @@ export default function Landing() {
               <Link to="/reservar" className="btn btn--primary btn--lg">
                 Reservar cita <Icon name="arrowRight" size={17} />
               </Link>
-              <a href="#servicios" className="btn btn--secondary btn--lg">
+              <button
+                type="button"
+                className="btn btn--secondary btn--lg"
+                onClick={() =>
+                  document
+                    .getElementById("servicios")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              >
                 Ver servicios
-              </a>
+              </button>
             </div>
             <div className="hero__meta">
               <span className="hero__meta-item">

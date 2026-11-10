@@ -21,6 +21,20 @@ function ScrollToTop() {
   return null;
 }
 
+// Rutas tipo /#/servicios o /#/demo: muestran la portada pero llevan el foco de
+// lectura a la sección pedida, de forma que esos enlaces sigan siendo compartibles.
+function AnchorLanding({ target }) {
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      document
+        .getElementById(target)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [target]);
+  return <Landing />;
+}
+
 function NotFound() {
   return (
     <div className="container page">
@@ -44,9 +58,14 @@ function Shell() {
     <div className="app-shell">
       <ScrollToTop />
       <Navbar />
-      <main className="app-main" id="contenido">
+      <main className="app-main" id="contenido" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route
+            path="/servicios"
+            element={<AnchorLanding target="servicios" />}
+          />
+          <Route path="/demo" element={<AnchorLanding target="demo" />} />
           <Route path="/reservar" element={<Booking />} />
           <Route path="/entrar" element={<Login />} />
           <Route path="/registro" element={<Register />} />

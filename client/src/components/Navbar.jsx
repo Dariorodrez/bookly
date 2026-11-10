@@ -57,11 +57,19 @@ export default function Navbar() {
     window.setTimeout(scroll, samePage ? 40 : 140);
   }
 
+  function skipToContent(event) {
+    event.preventDefault();
+    const main = document.getElementById("contenido");
+    if (!main) return;
+    main.focus({ preventScroll: true });
+    main.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   const isActive = (path) => location.pathname === path;
 
   return (
     <>
-      <a className="sr-only" href="#contenido">
+      <a className="sr-only" href="#contenido" onClick={skipToContent}>
         Saltar al contenido
       </a>
       <header className="nav">
