@@ -103,7 +103,7 @@ npm run dev
 ```
 
 ### Modo demo local
-El cliente puede ejecutarse sin backend con el mismo interfaz y un motor de
+El cliente puede ejecutarse sin backend con la misma interfaz y un motor de
 demo que replica la lógica del servidor (disponibilidad, solapamientos,
 reprogramaciones, CRUD y estadísticas) sobre `localStorage`:
 
