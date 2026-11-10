@@ -14,6 +14,16 @@ administración y una demo pública que funciona sin registro.
 La demo incluye botones de acceso rápido, datos de ejemplo y un enlace para
 restablecerla. Los cambios se guardan solo en el navegador.
 
+## Capturas
+
+| Inicio | Elegir día y hora |
+|---|---|
+| ![Inicio](docs/screenshots/01-inicio.png) | ![Reserva](docs/screenshots/02-reserva.png) |
+
+| Panel de administración | Mi cuenta |
+|---|---|
+| ![Panel de administración](docs/screenshots/03-panel.png) | ![Mi cuenta](docs/screenshots/04-cuenta.png) |
+
 ## Stack
 
 - **Frontend:** React 18 + Vite, CSS propio (design system), React Router 6, TanStack Query
