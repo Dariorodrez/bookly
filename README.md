@@ -11,8 +11,9 @@ administración y una demo pública que funciona sin registro.
 | Cliente | `cliente@bookly.com` | `cliente1234` |
 | Administración | `admin@bookly.com` | `admin1234` |
 
-La demo incluye botones de acceso rápido, datos de ejemplo y un enlace para
-restablecerla. Los cambios se guardan solo en el navegador.
+La demo muestra las credenciales en la portada y en la pantalla de acceso, con
+botones de entrada en un clic, datos de ejemplo y un enlace para restablecerla.
+Los cambios se guardan solo en el navegador.
 
 ## Capturas
 
@@ -23,6 +24,10 @@ restablecerla. Los cambios se guardan solo en el navegador.
 | Panel de administración | Mi cuenta |
 |---|---|
 | ![Panel de administración](docs/screenshots/03-panel.png) | ![Mi cuenta](docs/screenshots/04-cuenta.png) |
+
+Acceso a la demo con las credenciales visibles y botones de entrada directa:
+
+![Acceso a la demo](docs/screenshots/05-acceso-demo.png)
 
 ## Stack
 

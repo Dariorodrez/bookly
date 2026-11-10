@@ -1,7 +1,7 @@
 // client/src/pages/Landing.jsx
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { api } from "../api/index.js";
+import { api, isDemo } from "../api/index.js";
 import {
   durationLabel,
   formatDateLong,
@@ -11,6 +11,7 @@ import {
   todayISO,
 } from "../lib/datetime.js";
 import { Icon } from "../components/Icons.jsx";
+import DemoSection from "../components/DemoSection.jsx";
 
 function NextAvailable({ services, hours }) {
   const first = services?.[0];
@@ -234,6 +235,8 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {isDemo && <DemoSection />}
 
       <section className="section">
         <div className="container">

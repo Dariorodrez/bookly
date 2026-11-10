@@ -42,6 +42,21 @@ export default function Navbar() {
     navigate("/");
   }
 
+  function goToDemo() {
+    const scroll = () =>
+      document
+        .getElementById("demo")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const samePage = location.pathname === "/";
+
+    setMobileOpen(false);
+    if (!samePage) navigate("/");
+
+    // El menú móvil ocupa espacio en el flujo: esperamos a que se cierre
+    // (y a que monte la landing) antes de calcular la posición final.
+    window.setTimeout(scroll, samePage ? 40 : 140);
+  }
+
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -55,7 +70,17 @@ export default function Navbar() {
             <Link to="/" className="brand" aria-label="BOOKLY, inicio">
               bookly<span className="brand__dot">.</span>
             </Link>
-            {isDemo && <span className="demo-chip">Demo</span>}
+            {isDemo && (
+              <button
+                type="button"
+                className="demo-chip demo-chip--btn"
+                onClick={goToDemo}
+                title="Ver cuentas de demo"
+                aria-label="Ver cuentas de demo"
+              >
+                Demo
+              </button>
+            )}
           </div>
 
           <nav className="nav__links" aria-label="Principal">
@@ -149,6 +174,11 @@ export default function Navbar() {
         <div className={`mobile-menu ${mobileOpen ? "is-open" : ""}`}>
           <Link to="/">Inicio</Link>
           <Link to="/reservar">Reservar cita</Link>
+          {isDemo && (
+            <button type="button" onClick={goToDemo}>
+              <Icon name="sparkle" size={17} /> Cuentas de demo
+            </button>
+          )}
           {user ? (
             <>
               <Link to="/mi-cuenta">Mis citas</Link>

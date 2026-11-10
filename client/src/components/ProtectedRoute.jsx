@@ -1,9 +1,14 @@
 // client/src/components/ProtectedRoute.jsx
 import { Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
+import { isDemo } from "../api/index.js";
+import { DEMO_ACCOUNTS } from "./DemoAccess.jsx";
+import DemoLogin from "./DemoLogin.jsx";
 
 export default function ProtectedRoute({ children, role }) {
   const { user, ready } = useAuth();
+  const { toast } = useToast();
   const location = useLocation();
 
   if (!ready) {
@@ -32,6 +37,16 @@ export default function ProtectedRoute({ children, role }) {
           <Link className="btn btn--primary" to="/mi-cuenta">
             Volver a mi cuenta
           </Link>
+
+          {isDemo && (
+            <div className="protected-demo">
+              <DemoLogin
+                accounts={DEMO_ACCOUNTS.filter((a) => a.key === "admin")}
+                note={false}
+                onSuccess={(u) => toast(`Sesión iniciada como ${u.name}`)}
+              />
+            </div>
+          )}
         </div>
       </div>
     );

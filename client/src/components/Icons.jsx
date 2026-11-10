@@ -99,6 +99,12 @@ const paths = {
     </>
   ),
   external: <path d="M14 3h7v7M10 14 21 3M21 14v7H3V3h7" />,
+  copy: (
+    <>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </>
+  ),
   download: <path d="M12 3v12M7 10l5 5 5-5M4 21h16" />,
   eye: (
     <>
